@@ -1,0 +1,24 @@
+stateDiagram-v2
+    [*] --> StartUser
+    StartUser --> InputForm: Mengisi Data Akun
+    InputForm --> ClickAddBtn: Klik "Add Account"
+
+    ClickAddBtn --> HandleEvent: Menangani Event Tombol "Add"
+    HandleEvent --> CreateAccountObj: Membuat Objek Akun
+    note left of CreateAccountObj: Menggunakan AccountBuilder untuk membuat objek Account
+    note left of CreateAccountObj: Pola Kreasi adalah Builder
+    CreateAccountObj --> CallService: Memanggil AccountService.addAccount()
+    CallService --> RefreshTable: Memperbarui Tampilan Tabel
+    note right of RefreshTable: Data baru dimuat dari AccountService.getAllAccounts()
+    RefreshTable --> ClearFields: Mengosongkan Field Input
+
+    CallService --> ProcessAdd: Memproses Penambahan Akun
+    note left of ProcessAdd: AccountService menerima objek Akun
+    note left of ProcessAdd: Prinsip SOLID adalah SRP
+    ProcessAdd --> CallDao: Memanggil AccountDao.save()
+    CallDao --> SaveToDB: Menyimpan ke Database via Hibernate
+    note right of SaveToDB: AccountDaoHibernateImpl menggunakan Hibernate Session dan Transaction
+    note right of SaveToDB: Pola Struktural adalah Adapter
+    SaveToDB --> CommitTx: Commit Transaksi
+    CommitTx --> ReturnStatus: Mengembalikan Status Operasi
+    ReturnStatus --> [*] as EndSystem

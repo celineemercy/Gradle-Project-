@@ -1,0 +1,117 @@
+classDiagram
+    direction LR
+
+    class Account {
+        -Long id
+        -String accountCode
+        -String accountName
+        -String accountType
+        +Account()
+        +Account(AccountBuilder builder)
+        +getId(): Long
+        +setId(id: Long): void
+        +getAccountCode(): String
+        +setAccountCode(code: String): void
+        +getAccountName(): String
+        +setAccountName(name: String): void
+        +getAccountType(): String
+        +setAccountType(type: String): void
+    }
+
+    class AccountBuilder {
+        -String accountCode
+        -String accountName
+        -String accountType
+        +withAccountCode(code: String): AccountBuilder
+        +withAccountName(name: String): AccountBuilder
+        +withAccountType(type: String): AccountBuilder
+        +build(): Account
+    }
+
+    class AccountDao {
+        +save(account: Account): void
+        +findById(id: Long): Optional<Account>
+        +findAll(): List<Account>
+        +update(account: Account): void
+        +delete(account: Account): void
+    }
+
+    class AccountDaoHibernateImpl {
+        +save(account: Account): void
+        +findById(id: Long): Optional<Account>
+        +findAll(): List<Account>
+        +update(account: Account): void
+        +delete(account: Account): void
+    }
+
+    class AccountService {
+        -AccountDao accountDao
+        +AccountService()
+        +AccountService(accountDao: AccountDao)
+        +getAllAccounts(): List<Account>
+        +addAccount(account: Account): void
+        +updateAccount(account: Account): void
+        +deleteAccount(account: Account): void
+        +printChartOfAccountsToPdf(filePath: String): void
+    }
+
+    class Command {
+        +execute(): void
+    }
+
+    class PrintCommand {
+        -AccountService accountService
+        -String filePath
+        +PrintCommand(accountService: AccountService, filePath: String)
+        +execute(): void
+        -showAlert(type, title, header, content): void
+    }
+
+    class MainApplication {
+        +start(primaryStage: Stage): void
+        +stop(): void
+        +main(args: String[]): void
+    }
+
+    class AccountController {
+        -TextField accountCodeField
+        -TextField accountNameField
+        -TextField accountTypeField
+        -TableView<Account> accountTable
+        -TableColumn<Account, Long> idColumn
+        -TableColumn<Account, String> codeColumn
+        -TableColumn<Account, String> nameColumn
+        -TableColumn<Account, String> typeColumn
+        -Button addButton
+        -Button updateButton
+        -Button deleteButton
+        -Button printPdfButton
+        -AccountService accountService
+        -ObservableList<Account> accountList
+        +AccountController()
+        +initialize(): void
+        +handleAddAccount(event: ActionEvent): void
+        +handleUpdateAccount(event: ActionEvent): void
+        +handleDeleteAccount(event: ActionEvent): void
+        +handlePrintPdf(event: ActionEvent): void
+        -loadAccounts(): void
+        -showAccountDetails(account: Account): void
+        -clearFields(): void
+    }
+
+    class HibernateUtil {
+        -static SessionFactory sessionFactory
+        +getSessionFactory(): SessionFactory
+        +shutdown(): void
+    }
+
+    Account "1" -- "1" AccountBuilder : creates >
+    AccountDao <|.. AccountDaoHibernateImpl : implements
+    AccountService "1" -- "1" AccountDao : uses >
+    PrintCommand "1" -- "1" AccountService : uses >
+    AccountController "1" -- "1" AccountService : uses >
+    AccountController "1" -- "1" Command : executes >
+    MainApplication .. AccountController : loads FXML
+    MainApplication .. HibernateUtil : initializes
+    AccountService .. Account : manages
+    AccountDao .. Account : persists

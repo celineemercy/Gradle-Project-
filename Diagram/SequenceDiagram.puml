@@ -1,0 +1,42 @@
+sequenceDiagram
+    participant User
+    participant MainApplication
+    participant AccountController
+    participant PrintPdfButton
+    participant AccountService
+    participant AccountDao
+    participant HibernateUtil
+    participant Database
+    participant iTextLibrary
+
+    User->>MainApplication: Starts application
+    MainApplication->>AccountController: Loads MainView.fxml and initializes controller
+    AccountController->>AccountService: Initializes with default constructor
+
+    User->>PrintPdfButton: Clicks "Print to PDF"
+    PrintPdfButton->>AccountController: Action event
+    AccountController->>AccountController: handlePrintPdf()
+    AccountController->>PrintCommand: Creates new PrintCommand(accountService, filePath)
+    AccountController->>PrintCommand: execute() (invoker executes command)
+
+    PrintCommand->>AccountService: printChartOfAccountsToPdf(filePath)
+    AccountService->>AccountDao: findAll()
+    AccountDao->>HibernateUtil: getSessionFactory()
+    HibernateUtil->>Database: Opens Session/Connection
+    Database-->>HibernateUtil: Session
+    HibernateUtil-->>AccountDao: Session
+    AccountDao->>Database: Execute HQL/SQL "FROM Account"
+    Database-->>AccountDao: List<Account> data
+    AccountDao-->>AccountService: Returns List<Account>
+
+    AccountService->>iTextLibrary: Creates Document, PdfWriter (new FileOutputStream)
+    AccountService->>iTextLibrary: Adds Title, Table Headers
+    loop for each Account
+        AccountService->>iTextLibrary: Adds Account data to table
+    end
+    AccountService->>iTextLibrary: Adds Table to Document
+    AccountService->>iTextLibrary: Closes Document (writes to PDF file)
+    iTextLibrary-->>AccountService: PDF file generated
+
+    AccountService-->>PrintCommand: Returns success/failure
+    PrintCommand->>User: Displays Alert (Success/Error)
